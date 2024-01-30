@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -19,6 +21,14 @@ public class UserEntity {
     private String password;
     @Email
     private String email;
+    private String bio;
+    private String image;
 
+    @OneToMany(mappedBy = "author")
+    private List<Article> articleList;
+
+
+    @OneToMany(mappedBy = "user")
+    private List<Comment> commentList;
 
 }

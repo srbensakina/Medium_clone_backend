@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/")
+@RequestMapping("/api/users/")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -29,10 +29,10 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JWTGenerator jwtGenerator;
 
-    @PostMapping("register")
+    @PostMapping("")
     public ResponseEntity<String> register(@RequestBody UserRegisterDto userRegisterDto) {
-        if (userRepository.existsByUsername(userRegisterDto.getUsername())) {
-            return new ResponseEntity<>("Username is taken !! ", HttpStatus.BAD_REQUEST);
+          if (userRepository.existsByUsernameOrEmail(userRegisterDto.getUsername() , userRegisterDto.getEmail())) {
+        return new ResponseEntity<>("Username or email is taken !! ", HttpStatus.BAD_REQUEST);
         }
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername(userRegisterDto.getUsername());
