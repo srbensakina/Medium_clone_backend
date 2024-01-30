@@ -5,10 +5,8 @@ import com.api.medium_clone.dto.UserLoginResponseDto;
 import com.api.medium_clone.dto.UserRegisterDto;
 import com.api.medium_clone.entity.UserEntity;
 import com.api.medium_clone.repository.UserRepository;
-import com.api.medium_clone.security.CustomerUserDetailsService;
 import com.api.medium_clone.security.JWTGenerator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,7 +26,6 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
-    //private final CustomerUserDetailsService customUserDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final JWTGenerator jwtGenerator;
 
