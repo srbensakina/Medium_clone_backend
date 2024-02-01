@@ -8,7 +8,9 @@ import com.api.medium_clone.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -58,5 +60,12 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public boolean isFollowing(UserEntity follower, UserEntity followedUser) {
         return followRepository.existsByFollowedAndFollower(followedUser, follower);
+    }
+
+    public List<UserEntity> getFollowedUsers(UserEntity follower) {
+        List<Follow> follows = followRepository.findByFollower(follower);
+        return follows.stream()
+                .map(Follow::getFollowed)
+                .collect(Collectors.toList());
     }
 }
