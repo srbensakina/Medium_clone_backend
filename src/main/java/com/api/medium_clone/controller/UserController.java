@@ -14,7 +14,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/user")
@@ -29,11 +28,8 @@ public class UserController {
     @GetMapping
     public ResponseEntity<UserResponseDto> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userEmail = userDetails.getUsername();
-        System.out.println("email " + userEmail);
-        UserEntity currentUser = userService.getCurrentUser(userEmail)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
+        String username = userDetails.getUsername();
+        UserEntity currentUser = userService.getCurrentUser(username);
         UserResponseDto userResponseDto = modelMapper.map(currentUser, UserResponseDto.class);
          userResponseDto.setToken(extractJwtToken(authentication));
         return ResponseEntity.ok(userResponseDto);
@@ -56,10 +52,9 @@ public class UserController {
             @Valid @RequestBody UpdateUserRequestDto updateUserRequestDto) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String userEmail = userDetails.getUsername();
+            String username = userDetails.getUsername();
 
-            UserEntity currentUser = userService.getCurrentUser(userEmail)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            UserEntity currentUser = userService.getCurrentUser(username);
 
             userService.updateUserFields(currentUser, updateUserRequestDto);
 

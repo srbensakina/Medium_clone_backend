@@ -22,9 +22,9 @@ private final UserRepository userRepository;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-            UserEntity user = userRepository.findByEmail(username).orElseThrow(()-> new UsernameNotFoundException("User Email "+ username+ "not found"));
+            UserEntity user = userRepository.findByUsername(username).orElseThrow(()-> new UsernameNotFoundException("User Email "+ username+ "not found"));
             Collection<GrantedAuthority> authorities = new ArrayList<>();
-            return new User(user.getEmail(), user.getPassword(), authorities);
+            return new User(user.getUsername(), user.getPassword(), authorities);
         }
 
     }

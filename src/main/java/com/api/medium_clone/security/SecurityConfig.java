@@ -3,6 +3,7 @@ package com.api.medium_clone.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -32,6 +33,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth ->
 
                         auth.requestMatchers("/api/users" , "/api/users/login").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/profiles/**").permitAll()
+
                                 .anyRequest().authenticated()
 
                 )

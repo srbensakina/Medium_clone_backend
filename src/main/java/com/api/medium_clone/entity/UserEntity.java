@@ -2,7 +2,6 @@ package com.api.medium_clone.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,6 +22,12 @@ public class UserEntity {
     private String email;
     private String bio;
     private String image;
+
+    @OneToMany(mappedBy = "follower")
+    private List<Follow> following;
+
+    @OneToMany(mappedBy = "followed")
+    private List<Follow> followers;
 
     @OneToMany(mappedBy = "author")
     private List<Article> articleList;

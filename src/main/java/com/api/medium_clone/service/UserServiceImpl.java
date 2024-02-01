@@ -2,6 +2,7 @@ package com.api.medium_clone.service;
 
 import com.api.medium_clone.dto.UpdateUserRequestDto;
 import com.api.medium_clone.entity.UserEntity;
+import com.api.medium_clone.exception.UserNotFoundException;
 import com.api.medium_clone.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,8 +16,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public Optional<UserEntity> getCurrentUser (String email) {
-        return userRepository.findByEmail(email);
+    public UserEntity getCurrentUser (String username) {
+        return userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
     }
 
     @Override
