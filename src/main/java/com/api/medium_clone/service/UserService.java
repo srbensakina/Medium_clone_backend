@@ -1,10 +1,13 @@
 package com.api.medium_clone.service;
 
+import com.api.medium_clone.dto.UpdateUserRequestDto;
+import com.api.medium_clone.dto.UserResponseDto;
 import com.api.medium_clone.entity.UserEntity;
 
 
 public interface UserService {
-    UserEntity getCurrentUser(String email);
+    UserResponseDto getCurrentUser(String username);
+    UserEntity getUserByUsername(String username);
 
-    UserEntity updateUser(UserEntity userEntity);
+    UserResponseDto updateUser(String username , UpdateUserRequestDto updateUserRequestDto);
 }

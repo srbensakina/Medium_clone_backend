@@ -43,4 +43,17 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(exception.getMessage());
     }
+
+    @ExceptionHandler({ArticleNotFoundException.class})
+    public ResponseEntity<Object> handleStudentNotFoundException(ArticleNotFoundException exception) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(exception.getMessage());
+    }
+    @ExceptionHandler(ArticleAccessDeniedException.class)
+    public ResponseEntity<Object> handleAccessDeniedException(ArticleAccessDeniedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ex.getMessage());
+    }
 }

@@ -1,15 +1,19 @@
 package com.api.medium_clone.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Article {
 
     @Id
@@ -21,12 +25,12 @@ public class Article {
     private String description;
     private String body;
 
-    @ElementCollection
-    private List<String> tagList;
+    @ManyToMany
+    private Set<Tag> tags = new HashSet<>();
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private boolean favorited;
-    private int favoritesCount;
+    private boolean favorited = false;
+    private int favoritesCount = 0;
 
     @ManyToOne()
     private UserEntity author;

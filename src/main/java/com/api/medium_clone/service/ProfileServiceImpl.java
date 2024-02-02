@@ -6,10 +6,10 @@ import com.api.medium_clone.exception.UserNotFoundException;
 import com.api.medium_clone.repository.FollowRepository;
 import com.api.medium_clone.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,8 +22,9 @@ public class ProfileServiceImpl implements ProfileService {
 
 
     @Override
-    public Optional<UserEntity> getUserProfile(String username) {
-        return userRepository.findByUsername(username);
+    public UserEntity getUserProfile(String username) {
+        return userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("No user with this Username"));
+
     }
 
     @Override

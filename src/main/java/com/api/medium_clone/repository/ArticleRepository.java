@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Repository
@@ -19,6 +20,11 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 
     @Query("SELECT a FROM Article a WHERE a.author IN :authors")
     List<Article> findFeedArticlesByAuthors(List<UserEntity> authors, Pageable pageable);
+
+
+    Optional<Article> findBySlug(String slug);
+
+
 }
 
 
