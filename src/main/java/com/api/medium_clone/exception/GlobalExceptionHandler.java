@@ -56,4 +56,21 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ex.getMessage());
     }
+
+
+    @ExceptionHandler(CommentAccessDeniedException.class)
+    public ResponseEntity<Object> handleAccessDeniedException(CommentAccessDeniedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ex.getMessage());
+    }
+
+
+    @ExceptionHandler({CommentNotFoundException.class})
+    public ResponseEntity<Object> handleStudentNotFoundException(CommentNotFoundException exception) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(exception.getMessage());
+    }
 }
+

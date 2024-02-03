@@ -11,6 +11,7 @@ import com.api.medium_clone.entity.UserEntity;
 import com.api.medium_clone.exception.ArticleAccessDeniedException;
 import com.api.medium_clone.exception.ArticleNotFoundException;
 import com.api.medium_clone.repository.ArticleRepository;
+import com.api.medium_clone.repository.CommentRepository;
 import com.api.medium_clone.repository.TagRepository;
 import com.api.medium_clone.specifications.ArticleSpecifications;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,8 @@ public class ArticleServiceImpl implements ArticleService {
     private final ProfileServiceImpl profileService;
 
     private final TagRepository tagRepository;
+
+    private final CommentRepository commentRepository;
 
     private final ModelMapper modelMapper;
 
@@ -159,7 +162,10 @@ public class ArticleServiceImpl implements ArticleService {
         validateArticleOwnership(currentUser, article.getAuthor());
 
         article.getTags().clear();
+        article.getComments().clear();
         articleRepository.save(article);
+
+        commentRepository.deleteAll(article.getComments());
 
         articleRepository.delete(article);
 

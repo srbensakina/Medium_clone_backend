@@ -35,4 +35,7 @@ public class Article {
     @ManyToOne()
     private UserEntity author;
 
+    @OneToMany(mappedBy = "article")
+    private List<Comment> comments;
+
 }
