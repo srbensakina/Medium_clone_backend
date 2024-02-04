@@ -6,7 +6,6 @@ import com.api.medium_clone.entity.Comment;
 import com.api.medium_clone.entity.UserEntity;
 import com.api.medium_clone.exception.ArticleAccessDeniedException;
 import com.api.medium_clone.exception.CommentNotFoundException;
-import com.api.medium_clone.exception.UserNotFoundException;
 import com.api.medium_clone.repository.ArticleRepository;
 import com.api.medium_clone.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service

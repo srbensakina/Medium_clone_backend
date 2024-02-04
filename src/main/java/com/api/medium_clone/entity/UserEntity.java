@@ -5,7 +5,9 @@ import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -35,5 +37,9 @@ public class UserEntity {
 
     @OneToMany(mappedBy = "user")
     private List<Comment> commentList;
+
+    @ManyToMany
+    private Set<Article> favoriteArticles = new HashSet<>();
+
 
 }

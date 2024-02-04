@@ -3,9 +3,8 @@ package com.api.medium_clone.controller;
 
 import com.api.medium_clone.dto.*;
 import com.api.medium_clone.entity.Article;
-import com.api.medium_clone.entity.Comment;
 import com.api.medium_clone.entity.UserEntity;
-import com.api.medium_clone.service.ArticleService;
+import com.api.medium_clone.exception.UserNotFoundException;
 import com.api.medium_clone.service.ArticleServiceImpl;
 import com.api.medium_clone.service.CommentService;
 import com.api.medium_clone.service.UserService;
@@ -18,7 +17,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/articles")
@@ -128,5 +126,24 @@ public class ArticleController {
 
         return ResponseEntity.ok("Comment deleted successfully");
     }
+
+    @PostMapping("/{slug}/favorite")
+    public ResponseEntity<ArticleListResponseItemDto> favoriteArticle(@PathVariable String slug, @AuthenticationPrincipal UserDetails userDetails) {
+        UserEntity currentUser = userService.getUserByUsername(userDetails.getUsername());
+        ArticleListResponseItemDto article = articleService.favoriteArticle(slug, currentUser);
+        return new ResponseEntity<>(article, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{slug}/favorite")
+    public ResponseEntity<ArticleListResponseItemDto> unfavoriteArticle(
+            @PathVariable String slug,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        UserEntity currentUser = userService.getUserByUsername(userDetails.getUsername());
+        ArticleListResponseItemDto articleDto = articleService.unfavoriteArticle(slug, currentUser);
+
+        return new ResponseEntity<>(articleDto, HttpStatus.OK);
+    }
+
 }
 

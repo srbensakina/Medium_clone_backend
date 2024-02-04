@@ -29,7 +29,10 @@ public class Article {
     private Set<Tag> tags = new HashSet<>();
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private boolean favorited = false;
+
+    @ManyToMany(mappedBy = "favoriteArticles", cascade = CascadeType.ALL)
+    private Set<UserEntity> favoritedBy = new HashSet<>();
+
     private int favoritesCount = 0;
 
     @ManyToOne()

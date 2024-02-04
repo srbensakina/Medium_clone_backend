@@ -8,11 +8,12 @@ import com.api.medium_clone.dto.UpdateArticleRequestDto;
 import com.api.medium_clone.entity.Article;
 import com.api.medium_clone.entity.Tag;
 import com.api.medium_clone.entity.UserEntity;
-import com.api.medium_clone.exception.ArticleAccessDeniedException;
+import com.api.medium_clone.exception.ArticleAlreadyFavoritedException;
 import com.api.medium_clone.exception.ArticleNotFoundException;
 import com.api.medium_clone.repository.ArticleRepository;
 import com.api.medium_clone.repository.CommentRepository;
 import com.api.medium_clone.repository.TagRepository;
+import com.api.medium_clone.repository.UserRepository;
 import com.api.medium_clone.specifications.ArticleSpecifications;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -21,12 +22,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.api.medium_clone.util.ArticleMapper.*;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +43,8 @@ public class ArticleServiceImpl implements ArticleService {
     private final ProfileServiceImpl profileService;
 
     private final TagRepository tagRepository;
+
+    private final UserRepository userRepository;
 
     private final CommentRepository commentRepository;
 
@@ -63,16 +69,12 @@ public class ArticleServiceImpl implements ArticleService {
 
         List<Article> articles = articleRepository.findAll(spec, PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("createdAt")))).getContent();
 
-        return ArticleListResponseDto.builder()
-                .articles(articles.stream()
-                        .map(article -> {
-                            ArticleListResponseItemDto dto = modelMapper.map(article, ArticleListResponseItemDto.class);
-                            dto.setAuthor(article.getAuthor().getUsername());
-                            return dto;
-                        })
-                        .collect(Collectors.toList()))
-                .articlesCount(articles.size())
-                .build();
+        return ArticleListResponseDto.builder().articles(articles.stream().map(article -> {
+            ArticleListResponseItemDto dto = modelMapper.map(article, ArticleListResponseItemDto.class);
+            mapAuthorAndFavorited(article, dto);
+
+            return dto;
+        }).collect(Collectors.toList())).articlesCount(articles.size()).build();
 
 
     }
@@ -83,35 +85,32 @@ public class ArticleServiceImpl implements ArticleService {
         List<UserEntity> followedUsers = profileService.getFollowedUsers(currentUser);
         followedUsers.add(currentUser);
 
-        List<Article> feedArticles =  articleRepository.findFeedArticlesByAuthors(followedUsers,
-                PageRequest.of(offset, limit,
-                        Sort.by(Sort.Order.desc("createdAt"))));
+        List<Article> feedArticles = articleRepository.findFeedArticlesByAuthors(followedUsers, PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("createdAt"))));
 
-        List<ArticleListResponseItemDto> articleListResponseItemDtos = feedArticles.stream()
-                .map(article -> {
-                    ArticleListResponseItemDto dto = modelMapper.map(article, ArticleListResponseItemDto.class);
-                    dto.setAuthor(article.getAuthor().getUsername());
-                    return dto;
-                })
-                .collect(Collectors.toList());
+        List<ArticleListResponseItemDto> articleListResponseItemDtos = feedArticles.stream().map(article -> {
+            ArticleListResponseItemDto dto = modelMapper.map(article, ArticleListResponseItemDto.class);
+            mapAuthorAndFavorited(article, dto);
 
-        return   ArticleListResponseDto.builder()
-                .articles(articleListResponseItemDtos)
-                .articlesCount(feedArticles.size())
-                .build();
+            return dto;
+        }).collect(Collectors.toList());
+
+        return ArticleListResponseDto.builder().articles(articleListResponseItemDtos).articlesCount(feedArticles.size()).build();
 
     }
 
     public Article findArticleBySlug(String slug) {
-      return articleRepository.findBySlug(slug).orElseThrow(() -> new ArticleNotFoundException("Article not found"));
+        return articleRepository.findBySlug(slug).orElseThrow(() -> new ArticleNotFoundException("Article not found"));
     }
 
     @Override
     public ArticleListResponseItemDto getArticleBySlug(String slug) {
-       Article article = articleRepository.findBySlug(slug).orElseThrow(() -> new ArticleNotFoundException("Article not found"));
+        Article article = articleRepository.findBySlug(slug).orElseThrow(() -> new ArticleNotFoundException("Article not found"));
 
         ArticleListResponseItemDto articleListResponseItemDto = modelMapper.map(article, ArticleListResponseItemDto.class);
-        articleListResponseItemDto.setAuthor(article.getAuthor().getUsername());
+
+        mapAuthorAndFavorited(article, articleListResponseItemDto);
+        articleListResponseItemDto.setTagList(article.getTags().stream().map(Tag::getName).collect(Collectors.toList()));
+
 
         return articleListResponseItemDto;
     }
@@ -121,7 +120,7 @@ public class ArticleServiceImpl implements ArticleService {
         Article article = modelMapper.map(createRequestDto, Article.class);
         article.setAuthor(author);
 
-        Set<Tag> tags =createTags( createRequestDto.getTagList());
+        Set<Tag> tags = createTags(createRequestDto.getTagList(), tagRepository);
 
         article.setTags(tags);
         article.setCreatedAt(LocalDateTime.now());
@@ -131,8 +130,11 @@ public class ArticleServiceImpl implements ArticleService {
         Article savedArticle = articleRepository.save(article);
 
         ArticleListResponseItemDto articleDto = modelMapper.map(savedArticle, ArticleListResponseItemDto.class);
-        articleDto.setAuthor(article.getAuthor().getUsername());
+
         articleDto.setTagList(tags.stream().map(Tag::getName).collect(Collectors.toList()));
+
+        mapAuthorAndFavorited(article, articleDto);
+
         return articleDto;
     }
 
@@ -142,7 +144,7 @@ public class ArticleServiceImpl implements ArticleService {
         assert false;
         validateArticleOwnership(currentUser, article.getAuthor());
 
-        updateArticleFields(article , updateArticleRequestDto);
+        updateArticleFields(article, updateArticleRequestDto);
         article.setSlug(generateSlug(updateArticleRequestDto.getTitle()));
         article.setUpdatedAt(LocalDateTime.now());
 
@@ -151,19 +153,29 @@ public class ArticleServiceImpl implements ArticleService {
         responseItemDto.setDescription(article.getDescription());
         responseItemDto.setBody(article.getBody());
         responseItemDto.setTagList(article.getTags().stream().map(Tag::getName).collect(Collectors.toList()));
-        responseItemDto.setAuthor(article.getAuthor().getUsername());
+
+        mapAuthorAndFavorited(article, responseItemDto);
+
         return responseItemDto;
     }
 
     @Override
+    @Transactional
     public void deleteArticle(String slug, UserEntity currentUser) {
         Article article = findArticleBySlug(slug);
         assert false;
         validateArticleOwnership(currentUser, article.getAuthor());
 
+        for (UserEntity user : article.getFavoritedBy()) {
+            user.getFavoriteArticles().remove(article);
+        }
+        article.getFavoritedBy().clear();
+        userRepository.saveAll(article.getFavoritedBy());
+
         article.getTags().clear();
         article.getComments().clear();
         articleRepository.save(article);
+
 
         commentRepository.deleteAll(article.getComments());
 
@@ -171,49 +183,68 @@ public class ArticleServiceImpl implements ArticleService {
 
     }
 
-
-    private void updateArticleFields(Article article, UpdateArticleRequestDto updateArticleRequestDto) {
-        Optional.ofNullable(updateArticleRequestDto.getTitle())
-                .ifPresent(article::setTitle);
-
-        Optional.ofNullable(updateArticleRequestDto.getDescription())
-                .ifPresent(article::setDescription);
-
-        Optional.ofNullable(updateArticleRequestDto.getBody())
-                .ifPresent(article::setBody);
-    }
+    @Override
+    @Transactional
+    public ArticleListResponseItemDto favoriteArticle(String slug, UserEntity user) {
+        Article article = articleRepository.findBySlug(slug).orElseThrow(() -> new ArticleNotFoundException("Article not found"));
 
 
-    private void validateArticleOwnership(UserEntity currentUser, UserEntity articleAuthor) {
-        if (!currentUser.equals(articleAuthor)) {
-            throw new ArticleAccessDeniedException("You don't have permission to update this article");
+        if (article.getFavoritedBy().contains(user)) {
+            throw new ArticleAlreadyFavoritedException("Article already favorited by the user");
         }
 
+        article.getFavoritedBy().add(user);
+        article.setFavoritesCount(article.getFavoritesCount() + 1);
+
+        Article savedArticle = articleRepository.save(article);
+
+        user.getFavoriteArticles().add(savedArticle);
+        userRepository.save(user);
+
+
+        ArticleListResponseItemDto dto = modelMapper.map(savedArticle, ArticleListResponseItemDto.class);
+
+        dto.setTagList(article.getTags().stream().map(Tag::getName).collect(Collectors.toList()));
+        mapAuthorAndFavorited(article, dto);
+
+
+        return dto;
     }
 
-    public static String generateSlug(String title) {
-        String lowercaseTitle = title.toLowerCase();
-        String slug = lowercaseTitle.replaceAll("\\s", "-");
-        slug = slug.replaceAll("[^a-zA-Z0-9-]", "");
-        slug = slug.trim();
+    @Override
+    @Transactional
+    public ArticleListResponseItemDto unfavoriteArticle(String slug, UserEntity currentUser) {
+        Article article = articleRepository.findBySlug(slug).orElseThrow(() ->
+                new ArticleNotFoundException("Article not found"));
 
-        return slug;
+        if (!article.getFavoritedBy().contains(currentUser)) {
+            throw new ArticleNotFoundException("Article is not favorited by the user");
+        }
+
+        article.getFavoritedBy().remove(currentUser);
+        article.setFavoritesCount(article.getFavoritesCount() - 1);
+
+        Article savedArticle = articleRepository.save(article);
+
+        currentUser.getFavoriteArticles().remove(savedArticle);
+        userRepository.save(currentUser);
+
+        ArticleListResponseItemDto dto = modelMapper.map(savedArticle, ArticleListResponseItemDto.class);
+
+        dto.setTagList(article.getTags().stream().map(Tag::getName).collect(Collectors.toList()));
+        mapAuthorAndFavorited(article, dto);
+        return dto;
+
     }
 
 
-    public Set<Tag> createTags(List<String> tags){
-      return   tags.stream()
-                .map(tagName -> tagRepository.findByName(tagName)
-                        .orElseGet(() -> {
-                            Tag newTag = new Tag();
-                            newTag.setName(tagName);
-                            return tagRepository.save(newTag);
-                        }))
-                .collect(Collectors.toSet());
+    private void updateArticleFields(Article article, UpdateArticleRequestDto updateArticleRequestDto) {
+        Optional.ofNullable(updateArticleRequestDto.getTitle()).ifPresent(article::setTitle);
+
+        Optional.ofNullable(updateArticleRequestDto.getDescription()).ifPresent(article::setDescription);
+
+        Optional.ofNullable(updateArticleRequestDto.getBody()).ifPresent(article::setBody);
     }
-
-
-
 
 
 }

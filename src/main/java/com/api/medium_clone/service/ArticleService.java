@@ -22,4 +22,9 @@ public interface ArticleService {
     ArticleListResponseItemDto updateArticle(String slug, UserEntity currentUser, UpdateArticleRequestDto updateArticleRequestDto);
 
     void deleteArticle(String slug, UserEntity currentUser);
+
+
+    ArticleListResponseItemDto favoriteArticle(String slug, UserEntity user);
+
+    ArticleListResponseItemDto unfavoriteArticle(String slug, UserEntity currentUser);
 }

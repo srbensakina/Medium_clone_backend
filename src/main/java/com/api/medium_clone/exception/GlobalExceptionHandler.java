@@ -72,5 +72,12 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(exception.getMessage());
     }
+
+    @ExceptionHandler({ArticleAlreadyFavoritedException.class})
+    public ResponseEntity<Object> handleStudentNotFoundException(ArticleAlreadyFavoritedException exception) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(exception.getMessage());
+    }
 }
 
