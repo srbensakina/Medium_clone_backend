@@ -4,8 +4,7 @@ package com.api.medium_clone.controller;
 import com.api.medium_clone.dto.*;
 import com.api.medium_clone.entity.Article;
 import com.api.medium_clone.entity.UserEntity;
-import com.api.medium_clone.exception.UserNotFoundException;
-import com.api.medium_clone.service.ArticleServiceImpl;
+import com.api.medium_clone.service.ArticleService;
 import com.api.medium_clone.service.CommentService;
 import com.api.medium_clone.service.UserService;
 import jakarta.validation.Valid;
@@ -23,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ArticleController {
 
-    private final ArticleServiceImpl articleService;
+    private final ArticleService articleService;
     private final UserService userService;
 
     private final CommentService commentService;

@@ -4,6 +4,7 @@ import com.api.medium_clone.dto.ArticleCreateRequestDto;
 import com.api.medium_clone.dto.ArticleListResponseDto;
 import com.api.medium_clone.dto.ArticleListResponseItemDto;
 import com.api.medium_clone.dto.UpdateArticleRequestDto;
+import com.api.medium_clone.entity.Article;
 import com.api.medium_clone.entity.UserEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -27,4 +28,6 @@ public interface ArticleService {
     ArticleListResponseItemDto favoriteArticle(String slug, UserEntity user);
 
     ArticleListResponseItemDto unfavoriteArticle(String slug, UserEntity currentUser);
+
+    Article findArticleBySlug(String slug);
 }

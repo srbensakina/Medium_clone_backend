@@ -2,6 +2,7 @@ package com.api.medium_clone.controller;
 
 import com.api.medium_clone.dto.ProfileResponseDto;
 import com.api.medium_clone.entity.UserEntity;
+import com.api.medium_clone.service.ProfileService;
 import com.api.medium_clone.service.ProfileServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ProfileController {
 
-    private final ProfileServiceImpl profileService;
+    private final ProfileService profileService;
 
     @GetMapping("/{username}")
     public ResponseEntity<ProfileResponseDto> getProfile(@PathVariable String username,

@@ -98,6 +98,7 @@ public class ArticleServiceImpl implements ArticleService {
 
     }
 
+    @Override
     public Article findArticleBySlug(String slug) {
         return articleRepository.findBySlug(slug).orElseThrow(() -> new ArticleNotFoundException("Article not found"));
     }
@@ -141,7 +142,6 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     public ArticleListResponseItemDto updateArticle(String slug, UserEntity currentUser, UpdateArticleRequestDto updateArticleRequestDto) {
         Article article = findArticleBySlug(slug);
-        assert false;
         validateArticleOwnership(currentUser, article.getAuthor());
 
         updateArticleFields(article, updateArticleRequestDto);
@@ -150,38 +150,32 @@ public class ArticleServiceImpl implements ArticleService {
 
         Article updatedArticle = articleRepository.save(article);
         ArticleListResponseItemDto responseItemDto = modelMapper.map(updatedArticle, ArticleListResponseItemDto.class);
-        responseItemDto.setDescription(article.getDescription());
-        responseItemDto.setBody(article.getBody());
-        responseItemDto.setTagList(article.getTags().stream().map(Tag::getName).collect(Collectors.toList()));
+        responseItemDto.setDescription(updatedArticle.getDescription());
+        responseItemDto.setBody(updatedArticle.getBody());
+        responseItemDto.setTagList(updatedArticle.getTags().stream().map(Tag::getName).collect(Collectors.toList()));
 
-        mapAuthorAndFavorited(article, responseItemDto);
+        mapAuthorAndFavorited(updatedArticle, responseItemDto);
 
         return responseItemDto;
     }
+
 
     @Override
     @Transactional
     public void deleteArticle(String slug, UserEntity currentUser) {
         Article article = findArticleBySlug(slug);
-        assert false;
         validateArticleOwnership(currentUser, article.getAuthor());
 
         for (UserEntity user : article.getFavoritedBy()) {
             user.getFavoriteArticles().remove(article);
+            userRepository.save(user);
         }
-        article.getFavoritedBy().clear();
-        userRepository.saveAll(article.getFavoritedBy());
-
-        article.getTags().clear();
-        article.getComments().clear();
-        articleRepository.save(article);
-
 
         commentRepository.deleteAll(article.getComments());
 
         articleRepository.delete(article);
-
     }
+
 
     @Override
     @Transactional
