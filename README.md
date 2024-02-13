@@ -26,38 +26,35 @@ Got it. Here's the updated README with instructions for running the application 
 ---
 # How to use
 
-## Cloning the Repository
-
-To clone the repository, run the following command:
-
-```bash
-git clone <repository_url>
-cd <repository_directory>
-```
-
 ## Running the Application with Docker Compose
 
-### Prerequisites
-
-Make sure you have Docker Compose installed on your system.
-
-### Running Docker Compose
-
-To run the application using Docker Compose, execute the following command:
+The application can be run using Docker Compose, which will start both the backend API and the required PostgreSQL database.
 
 ```bash
-docker-compose up -d
+./run.sh start
 ```
 
-This command will start the application and its dependencies defined in the `docker-compose.yml` file.
+This command will start all Docker containers defined in the `docker-compose.yml` file located in the "Medium Clone Backend" directory. It will also build the backend API using Maven before starting the containers.
 
-### Stopping Docker Compose
+## Stopping the Application
 
-To stop the running containers managed by Docker Compose, run:
+To stop the application and remove the Docker containers, you can use the following command:
 
 ```bash
-docker-compose down
+./run.sh stop
 ```
+
+## Restarting the Application
+
+If you need to restart the application, you can use the following command:
+
+```bash
+./run.sh restart
+```
+
+This will stop the application, wait for a few seconds, and then start it again.
+
+---
 
 ## Test the Endpoints
 
