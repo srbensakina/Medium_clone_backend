@@ -21,42 +21,43 @@ This Spring Boot application serves as a backend for a simple blogging platform.
 - **Update Article**: PUT request to `/api/articles/:slug` with optional title, description, and body (Authentication required).
 - **Delete Article**: DELETE request to `/api/articles/:slug` (Authentication required).
 
-## How to Use
-1. Clone the repository.
-2. Build the application using Maven.
-3. Run the application locally.
-4. Use cURL commands or your preferred API testing tool to interact with the endpoints.
-5. Refer to the provided examples for each endpoint in the README file for testing.
+Got it. Here's the updated README with instructions for running the application using Docker Compose:
 
-# Using and Testing the Spring Boot Application
+---
+# How to use
 
-## Prerequisites
-Make sure you have the following installed:
+## Cloning the Repository
 
-- [Java Development Kit (JDK)](https://www.oracle.com/java/technologies/javase-downloads.html)
-- [Apache Maven](https://maven.apache.org/install.html)
-- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-
-## Clone the Repository
+To clone the repository, run the following command:
 
 ```bash
 git clone <repository_url>
 cd <repository_directory>
 ```
 
-## Build the Application
+## Running the Application with Docker Compose
+
+### Prerequisites
+
+Make sure you have Docker Compose installed on your system.
+
+### Running Docker Compose
+
+To run the application using Docker Compose, execute the following command:
 
 ```bash
-mvn clean install
+docker-compose up -d
 ```
 
-## Run the Application
+This command will start the application and its dependencies defined in the `docker-compose.yml` file.
+
+### Stopping Docker Compose
+
+To stop the running containers managed by Docker Compose, run:
 
 ```bash
-mvn spring-boot:run
+docker-compose down
 ```
-
-The application should now be running locally.
 
 ## Test the Endpoints
 
