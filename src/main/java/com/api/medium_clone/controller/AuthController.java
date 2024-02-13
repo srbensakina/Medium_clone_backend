@@ -5,7 +5,7 @@ import com.api.medium_clone.dto.UserLoginResponseDto;
 import com.api.medium_clone.dto.UserRegisterDto;
 import com.api.medium_clone.entity.UserEntity;
 import com.api.medium_clone.repository.UserRepository;
-import com.api.medium_clone.security.JWTGenerator;
+import com.api.medium_clone.service.security.JWTGenerator;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

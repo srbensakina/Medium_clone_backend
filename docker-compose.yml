@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  app-db:
+    image: postgres:14-alpine
+    restart: always
+    environment:
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: password
+      POSTGRES_PASSWORD: your_password
+    ports:
+      - "5332:5432"
+    volumes:
+      - ./db:/var/lib/postgresql/data
+  app-api:
+    image: raniabensakina/meduim
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      SPRING_DATASOURCE_URL: jdbc:postgresql://app-db:5432/meduim
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: password
+    ports:
+      - "18080:8080"
+    restart: always
+    depends_on:
+      - app-db

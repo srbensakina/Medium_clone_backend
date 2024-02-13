@@ -1,4 +1,4 @@
-package com.api.medium_clone.security;
+package com.api.medium_clone.service.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

@@ -1,4 +1,4 @@
-package com.api.medium_clone.security;
+package com.api.medium_clone.service.security;
 
 import com.api.medium_clone.entity.UserEntity;
 import com.api.medium_clone.repository.UserRepository;

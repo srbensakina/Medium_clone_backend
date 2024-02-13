@@ -1,4 +1,4 @@
-package com.api.medium_clone.security;
+package com.api.medium_clone.service.security;
 
     public class SecurityConstants {
         public static final long JWT_EXPIRATION = 70000;

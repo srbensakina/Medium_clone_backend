@@ -1,4 +1,4 @@
-package com.api.medium_clone.security;
+package com.api.medium_clone.service.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
