@@ -21,42 +21,40 @@ This Spring Boot application serves as a backend for a simple blogging platform.
 - **Update Article**: PUT request to `/api/articles/:slug` with optional title, description, and body (Authentication required).
 - **Delete Article**: DELETE request to `/api/articles/:slug` (Authentication required).
 
-## How to Use
-1. Clone the repository.
-2. Build the application using Maven.
-3. Run the application locally.
-4. Use cURL commands or your preferred API testing tool to interact with the endpoints.
-5. Refer to the provided examples for each endpoint in the README file for testing.
+Got it. Here's the updated README with instructions for running the application using Docker Compose:
 
-# Using and Testing the Spring Boot Application
+---
+# How to use
 
-## Prerequisites
-Make sure you have the following installed:
+## Running the Application with Docker Compose
 
-- [Java Development Kit (JDK)](https://www.oracle.com/java/technologies/javase-downloads.html)
-- [Apache Maven](https://maven.apache.org/install.html)
-- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-
-## Clone the Repository
+The application can be run using Docker Compose, which will start both the backend API and the required PostgreSQL database.
 
 ```bash
-git clone <repository_url>
-cd <repository_directory>
+./run.sh start
 ```
 
-## Build the Application
+This command will start all Docker containers defined in the `docker-compose.yml` file located in the "Medium Clone Backend" directory. It will also build the backend API using Maven before starting the containers.
+
+## Stopping the Application
+
+To stop the application and remove the Docker containers, you can use the following command:
 
 ```bash
-mvn clean install
+./run.sh stop
 ```
 
-## Run the Application
+## Restarting the Application
+
+If you need to restart the application, you can use the following command:
 
 ```bash
-mvn spring-boot:run
+./run.sh restart
 ```
 
-The application should now be running locally.
+This will stop the application, wait for a few seconds, and then start it again.
+
+---
 
 ## Test the Endpoints
 
