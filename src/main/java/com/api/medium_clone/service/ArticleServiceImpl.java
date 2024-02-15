@@ -17,6 +17,8 @@ import com.api.medium_clone.repository.UserRepository;
 import com.api.medium_clone.specifications.ArticleSpecifications;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -51,8 +53,13 @@ public class ArticleServiceImpl implements ArticleService {
     private final ModelMapper modelMapper;
 
 
-    @Override
+   private static final Logger logger = LoggerFactory.getLogger(ArticleServiceImpl.class);
+
+
+   @Override
     public ArticleListResponseDto listArticles(int limit, int offset, String tag, String author, String favorited) {
+        logger.info("Listing articles with limit {}, offset {}, tag {}, author {}, favorited {}", limit, offset, tag, author, favorited);
+
         Specification<Article> spec = Specification.where(ArticleSpecifications.orderByMostRecent());
 
         if (tag != null) {
@@ -71,7 +78,11 @@ public class ArticleServiceImpl implements ArticleService {
 
         return ArticleListResponseDto.builder().articles(articles.stream().map(article -> {
             ArticleListResponseItemDto dto = modelMapper.map(article, ArticleListResponseItemDto.class);
+            dto.setTagList(article.getTags().stream().map(Tag::getName).collect(Collectors.toList()));
+
             mapAuthorAndFavorited(article, dto);
+
+            logger.info("Found {} articles matching the criteria", articles.size());
 
             return dto;
         }).collect(Collectors.toList())).articlesCount(articles.size()).build();
@@ -81,43 +92,63 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public ArticleListResponseDto getFeedArticles(UserDetails userDetails, int limit, int offset) {
-        UserEntity currentUser = userService.getUserByUsername(userDetails.getUsername());
+        String username = userDetails.getUsername();
+        logger.info("Fetching feed articles for user '{}'", username);
+
+        UserEntity currentUser = userService.getUserByUsername(username);
         List<UserEntity> followedUsers = profileService.getFollowedUsers(currentUser);
         followedUsers.add(currentUser);
 
         List<Article> feedArticles = articleRepository.findFeedArticlesByAuthors(followedUsers, PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("createdAt"))));
+        logger.info("Found {} feed articles for user '{}'", feedArticles.size(), username);
 
         List<ArticleListResponseItemDto> articleListResponseItemDtos = feedArticles.stream().map(article -> {
             ArticleListResponseItemDto dto = modelMapper.map(article, ArticleListResponseItemDto.class);
+            dto.setTagList(article.getTags().stream().map(Tag::getName).collect(Collectors.toList()));
             mapAuthorAndFavorited(article, dto);
-
             return dto;
         }).collect(Collectors.toList());
 
-        return ArticleListResponseDto.builder().articles(articleListResponseItemDtos).articlesCount(feedArticles.size()).build();
-
+        return ArticleListResponseDto.builder()
+                .articles(articleListResponseItemDtos)
+                .articlesCount(feedArticles.size())
+                .build();
     }
 
-    @Override
-    public Article findArticleBySlug(String slug) {
-        return articleRepository.findBySlug(slug).orElseThrow(() -> new ArticleNotFoundException("Article not found"));
-    }
+     @Override
+     public Article findArticleBySlug(String slug) {
+         Optional<Article> optionalArticle = articleRepository.findBySlug(slug);
+         if (optionalArticle.isPresent()) {
+             Article article = optionalArticle.get();
+             logger.info("Article found by slug {}: {}", slug, article);
+             return article;
+         } else {
+             logger.error("Article not found by slug: {}", slug);
+             throw new ArticleNotFoundException("Article not found");
+         }
+     }
 
     @Override
     public ArticleListResponseItemDto getArticleBySlug(String slug) {
-        Article article = articleRepository.findBySlug(slug).orElseThrow(() -> new ArticleNotFoundException("Article not found"));
 
+        logger.info("Fetching article by slug: {}", slug);
+
+        Article article = findArticleBySlug(slug);
         ArticleListResponseItemDto articleListResponseItemDto = modelMapper.map(article, ArticleListResponseItemDto.class);
 
         mapAuthorAndFavorited(article, articleListResponseItemDto);
         articleListResponseItemDto.setTagList(article.getTags().stream().map(Tag::getName).collect(Collectors.toList()));
 
+        logger.info("Article fetched successfully for slug: {}", slug);
 
         return articleListResponseItemDto;
     }
 
     @Override
     public ArticleListResponseItemDto createArticle(ArticleCreateRequestDto createRequestDto, UserEntity author) {
+
+        logger.info("Creating article for author: {}", author.getUsername());
+
         Article article = modelMapper.map(createRequestDto, Article.class);
         article.setAuthor(author);
 
@@ -135,6 +166,8 @@ public class ArticleServiceImpl implements ArticleService {
         articleDto.setTagList(tags.stream().map(Tag::getName).collect(Collectors.toList()));
 
         mapAuthorAndFavorited(article, articleDto);
+
+        logger.info("Article created successfully for author: {}", author.getUsername());
 
         return articleDto;
     }
@@ -180,8 +213,8 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     @Transactional
     public ArticleListResponseItemDto favoriteArticle(String slug, UserEntity user) {
-        Article article = articleRepository.findBySlug(slug).orElseThrow(() -> new ArticleNotFoundException("Article not found"));
 
+            Article article = findArticleBySlug(slug);
 
         if (article.getFavoritedBy().contains(user)) {
             throw new ArticleAlreadyFavoritedException("Article already favorited by the user");
@@ -208,8 +241,8 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     @Transactional
     public ArticleListResponseItemDto unfavoriteArticle(String slug, UserEntity currentUser) {
-        Article article = articleRepository.findBySlug(slug).orElseThrow(() ->
-                new ArticleNotFoundException("Article not found"));
+
+        Article article = findArticleBySlug(slug);
 
         if (!article.getFavoritedBy().contains(currentUser)) {
             throw new ArticleNotFoundException("Article is not favorited by the user");
